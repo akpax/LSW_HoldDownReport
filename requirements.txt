@@ -2,3 +2,5 @@ PyPDF2
 icecream
 pandas
 scikit-learn
+openpyxl
+Pillow

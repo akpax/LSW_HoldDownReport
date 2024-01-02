@@ -4,3 +4,5 @@ venv
 pyvenv.cfg
 final_output.csv
 test_db.csv
+images
+output.xlsx

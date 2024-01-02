@@ -5,6 +5,8 @@ import pandas as pd
 import math
 from sklearn.cluster import DBSCAN
 import numpy as np
+import openpyxl
+from openpyxl.drawing.image import Image
 
 
 
@@ -109,13 +111,16 @@ def create_location_key(label_l, label_r):
     return f"{str(label_l)}_{str(label_r)}"
 
 ####################### Key variables #####################################
-output_file_path = "test_files/Thornton SW Output.pdf"
-input_file_path = "test_files/Thornton Input.txt"
+LSW_output_file_path = r"test_files/Thornton SW Output.pdf"
+LSW_input_file_path = r"test_files/Thornton Input.txt"
 eps = 2
+logo_path = r"images/MSD Full Logo.jpg"
+output_path = r"output.xlsx"
+
 
 
 # # ############### Read output pdf and store as DF #################
-output_text = read_full_pdf(output_file_path)
+output_text = read_full_pdf(LSW_output_file_path)
 print(output_text)
 ### read output file
 load_cases = extract_lateral_load_cases(output_text)
@@ -157,7 +162,16 @@ for load_case, entries in output_dict.items():
 # key output_dfs are same length befoe combining
 for df in output_dfs:
     print(len(df))
+
+def ensure_df_in_list_same_length(df_list: list):
+    assert all([len(df)==len(df_list[0]) for df in df_list])
+
+ensure_df_in_list_same_length(output_dfs)
+
+
 output_df = pd.concat(output_dfs, ignore_index=True)
+
+output_raw_df = output_df #save raw output for report later
 
 def remove_comma_convert_to_float(x):
     number,unit = x.split(" ")  # TO DO create fucntion that takes unti and appends to column title
@@ -168,11 +182,8 @@ def remove_comma_convert_to_float(x):
 output_df["left_tension"] = output_df.apply(lambda row: remove_comma_convert_to_float(row["left_tension"]), axis=1)
 output_df["right_tension"] = output_df.apply(lambda row: remove_comma_convert_to_float(row["right_tension"]), axis=1)
 
-print(output_df)
-# breakpoint()
-# #convert remove commas and convert right, left tension values to int 
-# def convert_to_float_add_unit_to_title(df, cols_to_convert):
-#     for col in cols_to_convert:
+
+
 ############### Read Input Text and Store as Df ###################
 input_cols = [
     "handle",
@@ -184,9 +195,13 @@ input_cols = [
     "LHD",
     "RHD"
 ]
-input_df = pd.read_table(input_file_path, header=None)
+input_df = pd.read_table(LSW_input_file_path, header=None)
 input_df = input_df.iloc[:,:-1]
 input_df.columns = input_cols
+
+input_raw_df = input_df # save initial input_df for logging purposes
+
+
 
 
 ############## create location keys for input df to determine stacked shear walls
@@ -235,20 +250,8 @@ input_df["handle"] = input_df["handle"].astype("str")  # convert from numpy to s
 df = pd.merge(output_df, input_df, on="handle", how="left")
 
 
-
-
-
-########################### group by load case and shear wall and find delta forces 
+########################### group by load case and shear wall and find delta forces for each side
 grouped_df = df.groupby(["load_case","location_key"])#.sort_values("level")
-
-# this code is done in the function bellow
-# for shearwall,frame in  grouped_df:
-#     print(shearwall)
-#     print(frame.sort_values("level"))
-#     frame["delta_l_tension"] = frame["left_tension_float"]-frame["left_tension_float"].shift(-1)
-#     frame["delta_l_tension"] = frame["delta_l_tension"].fillna(frame["left_tension"])
-#     print(frame)
-
 
 def find_delta_forces(frame, force_cols: list):
     # Sort the group if needed
@@ -259,28 +262,84 @@ def find_delta_forces(frame, force_cols: list):
         frame[f"delta_{force_col}"] = frame[f"delta_{force_col}"].fillna(frame[force_col])
     return frame
 
-result_df = grouped_df.apply(find_delta_forces, force_cols=["left_tension","right_tension"])
-print(result_df["load_case"])
-result_df = result_df.reset_index(drop=True) # convert multi-index back to cols
-print(result_df["load_case"])
-print(result_df)
-result_df["max_delta"] = result_df[["delta_left_tension","delta_right_tension"]].max(axis=1) #find max delta between right and left holddowns
-print(result_df["load_case"])
-print(result_df)
+delta_df = grouped_df.apply(find_delta_forces, force_cols=["left_tension","right_tension"])
 
-# Group by 'handle' and calculate the max force for each group
-max_delta_force_id = result_df.groupby('handle')['max_delta'].idxmax()
+delta_df = delta_df.reset_index(drop=True) # convert multi-index back to cols
+# result_df["max_delta"] = result_df[["delta_left_tension","delta_right_tension"]].max(axis=1) #find max delta between right and left holddowns
+
+
+# # Group by 'handle' and calculate the max force for each group
+# max_delta_force_id = result_df.groupby('handle')['max_delta'].idxmax()
+delta_grouped_df = delta_df.groupby("handle")
+
+delta_left_max_index = delta_grouped_df["delta_left_tension"].idxmax()
+delta_right_max_index = delta_grouped_df["delta_right_tension"].idxmax()
+
+walls_max_delta_left_df = delta_df.loc[delta_left_max_index][["handle","delta_left_tension","LHD","load_case","left_location"]]
+walls_max_delta_left_df.rename(columns={"load_case": "load_case_left"},inplace=True)
+
+walls_max_delta_right_df = delta_df.loc[delta_right_max_index][["handle","delta_right_tension","RHD","load_case","right_location", "location_key", "level"]]
+walls_max_delta_right_df.rename(columns={"load_case": "load_case_right"},inplace=True)
+
+walls_max_delta_df = walls_max_delta_left_df.merge(walls_max_delta_right_df,how="outer", on="handle")
+
+print(walls_max_delta_df)
+print(len(walls_max_delta_left_df))
+print(len(walls_max_delta_right_df))
+print(len(walls_max_delta_df))
+
+# groupy by location key and sort by level
+walls_max_delta_df = walls_max_delta_df.groupby("location_key",as_index=False).apply(lambda frame: frame.sort_values("level"))
+walls_max_delta_df.drop(columns="location_key",inplace=True)
+
+
+############################################## create tiedown schedule
+# take holdowns and delta forces for left and right and concatenated along rows
+LHD_df = walls_max_delta_df[["LHD","delta_left_tension"]]
+LHD_df.rename(columns={"LHD": "HD_type", "delta_left_tension": "tension"},inplace=True)
+
+RHD_df = walls_max_delta_df[["RHD","delta_right_tension"]]
+RHD_df.rename(columns={"RHD": "HD_type", "delta_right_tension": "tension"}, inplace=True)
+
+HD_df = pd.concat([LHD_df,RHD_df],axis=0, ignore_index=True)
+
+HD_max_df = HD_df.groupby("HD_type", as_index=False).max("tension").sort_values("tension",ascending=False)
+
 
 # Retain only the rows where the force equals the maximum force in its group
-final_output_df = result_df.loc[max_delta_force_id]
-print(final_output_df["load_case"])
-print(final_output_df)
-
+# final_output_df = result_df.loc[max_delta_force_id]
+# print(final_output_df["load_case"])
 # print(final_output_df)
-final_output_df = final_output_df.groupby("location_key").apply(lambda frame: frame.sort_values("level")) #group by location key to see stacked walls
 
-final_output_df = final_output_df[["handle","name","load_case","level","left_tension", 'delta_left_tension', "right_tension", 'delta_right_tension','max_delta']]
 
-# print(len(final_output_df))
-# print(len(input_df))
-final_output_df.to_csv("final_output.csv", index=False) #set index to true bc handle was used in groupby and is now index
+################################################ KEEP CODE BELLOW 
+# # print(final_output_df)
+# final_output_df = final_output_df.groupby("location_key").apply(lambda frame: frame.sort_values("level")) #group by location key to see stacked walls
+
+# final_output_df = final_output_df[["handle","name","load_case","level","left_location","right_location","left_tension", 'delta_left_tension', "right_tension", 'delta_right_tension','max_delta']]
+
+# # print(len(final_output_df))
+# # print(len(input_df))
+# final_output_df.to_csv("final_output.csv", index=False) #set index to true bc handle was used in groupby and is now index
+
+
+# ##################### Initialize ExcelWriter for output #######################
+with pd.ExcelWriter(output_path) as writer:
+    HD_max_df.to_excel(writer, sheet_name="Holdown Summary", index=False, startrow=15) #leave room for MAR logo
+    walls_max_delta_df.to_excel(writer, sheet_name='Wall Info', index=False, startrow=15)
+    output_raw_df.to_excel(writer, sheet_name='LSW output data', index=False)
+    input_raw_df.to_excel(writer, sheet_name='LSW input data', index=False)
+    
+ 
+######################### add mar logo to holdown summary, Wall info
+wb = openpyxl.load_workbook(output_path)
+ws1 = wb["Holdown Summary"]
+ws2 = wb["Wall Info"]
+
+ws1.add_image(Image(logo_path), "A1")
+ws2.add_image(Image(logo_path), "A1")
+wb.save(output_path)
+
+
+
+ 
