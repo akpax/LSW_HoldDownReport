@@ -6,6 +6,7 @@ from sklearn.cluster import DBSCAN
 import numpy as np
 import openpyxl
 from openpyxl.drawing.image import Image
+import GUI
 
 
 
@@ -80,6 +81,10 @@ LSW_input_file_path = r"test_files/Thornton Input.txt"
 eps = 2
 logo_path = r"images/MSD Full Logo.jpg"
 output_path = r"output.xlsx"
+
+win = GUI.create_input_files_window()
+win.mainloop()
+
 
 
 
@@ -227,7 +232,7 @@ delta_grouped_df = delta_df.groupby("handle")
 delta_left_max_index = delta_grouped_df["delta_left_tension"].idxmax()
 delta_right_max_index = delta_grouped_df["delta_right_tension"].idxmax()
 
-walls_max_delta_left_df = delta_df.loc[delta_left_max_index][["handle","delta_left_tension","LHD","load_case","left_location"]]
+walls_max_delta_left_df = delta_df.loc[delta_left_max_index][["handle","name","delta_left_tension","LHD","load_case","left_location"]]
 walls_max_delta_left_df.rename(columns={"load_case": "load_case_left"},inplace=True)
 
 walls_max_delta_right_df = delta_df.loc[delta_right_max_index][["handle","delta_right_tension","RHD","load_case","right_location", "location_key", "level"]]
