@@ -10,7 +10,7 @@ from tkinter import Tk, Label, Button, filedialog
 class FileSelectorGUI:
     def __init__(self):
         self.win = Tk()
-        self.win.title("File Selector")
+        self.win.title("LSW Holdown Report - File Selector")
 
         self.input_file_path = None
         self.output_file_path = None
@@ -86,11 +86,11 @@ def create_file_selector():
 #     ttk.Button(win,text="Submit", command=lambda: close_window(win)).grid(row=2, column=0)
 #     return win
 
-def create_output_alert():
+def create_output_alert(output_file_folder):
    win = Tk()
    win.title("LSW Holdown Report Generator")
    Label(win, text='Analysis Successfull!' ,font=('Arial 13 bold')).grid(row=0,padx=50,pady=10)
-   Label(win, text='See "output.xlsx" for report ',font=('Arial 13')).grid(row=1,padx=50,pady=10)
+   Label(win, text=f'See "{output_file_folder}" for report ',font=('Arial 13')).grid(row=1,padx=50,pady=10)
    Button(win,text="Exit", command=win.destroy).grid(row=2)
    win.mainloop()
    return win

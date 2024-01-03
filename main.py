@@ -79,19 +79,19 @@ def create_location_key(label_l, label_r):
 
 def append_date_and_time(prefix):
     date = datetime.now()
-    formated_date = date.strftime("%m-%d-%Y_%H:%M:%S")
+    formated_date = date.strftime("%m-%d-%Y")
     return f"{prefix}_{formated_date}"
 
 # create folder for report using current date and time
 def create_output_folder_path(name):
     """
-    Finds desktop path and returns output folder path inside desktop dir
+    Finds CWD and returns output folder path inside desktop dir
     """
     # date = datetime.now()
     # formated_date = date.strftime("%d-%m-%Y_%H:%M:%S")
-    folder_name = append_date_and_time(name)
-    home_directory = os.path.expanduser("~") # get Home directory
-    output_folder_path = os.path.join(home_directory,"Desktop",folder_name)
+    output_folder_name = append_date_and_time(name)
+    current_folder = os.getcwd() # get Home directory
+    output_folder_path = os.path.join(current_folder, output_folder_name)
     return output_folder_path
 
 ####################### Key variables #####################################
@@ -305,7 +305,7 @@ ws2.add_image(Image(logo_path), "A1")
 wb.save(xlsx_output_path)
 
 #### display success message
-create_output_alert()
+create_output_alert(output_folder_path)
 
 
 
