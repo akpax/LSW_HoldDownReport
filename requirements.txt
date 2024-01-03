@@ -1,6 +1,7 @@
-PyPDF2
+PyPDF2ß
 icecream
 pandas
 scikit-learn
 openpyxl
 Pillow
+pyinstaller
