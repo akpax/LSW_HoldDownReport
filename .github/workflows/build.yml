@@ -30,7 +30,7 @@ jobs:
 
         - name: Build Executable (macOS)
           if: startsWith(matrix.os, 'macos')
-          run: pyinstaller --onefile --windowed main.py --name=LSW_HoldownReport.app
+          run: pyinstaller --onefile --windowed main.py --name=LSW_HoldownReport
 
         - name: Rename Executable (Windows)
           if: startsWith(matrix.os, 'windows')
@@ -38,7 +38,7 @@ jobs:
 
         - name: Rename Executable (macOS)
           if: startsWith(matrix.os, 'macos')
-          run: mv dist/LSW_HoldownReport.app dist/LSW_HoldownReport_macos.app
+          run: mv dist/LSW_HoldownReport dist/LSW_HoldownReport_macos
         - name: Upload Executable as Artifact
           uses: actions/upload-artifact@v2
           with:

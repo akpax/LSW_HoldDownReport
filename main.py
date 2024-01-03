@@ -7,6 +7,8 @@ import numpy as np
 import openpyxl
 from openpyxl.drawing.image import Image
 from GUI import create_file_selector, create_output_alert
+from datetime import datetime
+import os
 
 
 
@@ -75,12 +77,28 @@ def label_close_points_with_dbscan(df, handle_column, coord_cols: list, out_labe
 def create_location_key(label_l, label_r):
     return f"{str(label_l)}_{str(label_r)}"
 
+def append_date_and_time(prefix):
+    date = datetime.now()
+    formated_date = date.strftime("%m-%d-%Y_%H:%M:%S")
+    return f"{prefix}_{formated_date}"
+
+# create folder for report using current date and time
+def create_output_folder_path(name):
+    """
+    Finds desktop path and returns output folder path inside desktop dir
+    """
+    # date = datetime.now()
+    # formated_date = date.strftime("%d-%m-%Y_%H:%M:%S")
+    folder_name = append_date_and_time(name)
+    home_directory = os.path.expanduser("~") # get Home directory
+    output_folder_path = os.path.join(home_directory,"Desktop",folder_name)
+    return output_folder_path
+
 ####################### Key variables #####################################
 # LSW_output_file_path = r"test_files/Thornton SW Output.pdf"
 # LSW_input_file_path = r"test_files/Thornton Input.txt"
 eps = 2
 logo_path = r"images/MSD Full Logo.jpg"
-output_path = r"output.xlsx"
 
 LSW_input_file_path, LSW_output_file_path = create_file_selector()
 
@@ -260,7 +278,18 @@ HD_max_df = HD_df.groupby("HD_type", as_index=False).max("tension").sort_values(
 
 
 # ##################### Output Important dfs to different sheets in output.xlsx #######################
-with pd.ExcelWriter(output_path) as writer:
+### create output folder on desktop
+output_folder_path = create_output_folder_path("LSW_HoldownReport")
+print(f"- Output Folder: {output_folder_path}")
+#create folder for output
+if not os.path.exists(output_folder_path): 
+    os.makedirs(output_folder_path)
+    print(" * Output Folder created *")
+
+xlsx_output_path = os.path.join(output_folder_path, "output.xlsx")
+
+
+with pd.ExcelWriter(xlsx_output_path) as writer:
     HD_max_df.to_excel(writer, sheet_name="Holdown Summary", index=False, startrow=15) #leave room for MAR logo
     walls_max_delta_df.to_excel(writer, sheet_name='Wall Info', index=False, startrow=15)
     output_raw_df.to_excel(writer, sheet_name='LSW output data', index=False)
@@ -268,12 +297,12 @@ with pd.ExcelWriter(output_path) as writer:
     
  
 ######################### add mar logo to holdown summary, Wall info
-wb = openpyxl.load_workbook(output_path)
+wb = openpyxl.load_workbook(xlsx_output_path)
 ws1 = wb["Holdown Summary"]
 ws2 = wb["Wall Info"]
 ws1.add_image(Image(logo_path), "A1")
 ws2.add_image(Image(logo_path), "A1")
-wb.save(output_path)
+wb.save(xlsx_output_path)
 
 #### display success message
 create_output_alert()
