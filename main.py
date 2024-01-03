@@ -280,6 +280,7 @@ ws1.add_image(Image(logo_path), "A1")
 ws2.add_image(Image(logo_path), "A1")
 wb.save(output_path)
 
+#### display success message
 win = GUI.create_output_alert_window()
 win.mainloop()
 

@@ -44,10 +44,7 @@ def create_input_files_window():
 def create_output_alert_window():
    win = Tk()
    win.title("LSW Holdown Report Generator")
-   
-   
    Label(win, text='Analysis Successfull!' ,font=('Arial 13 bold')).grid(row=0,padx=50,pady=10)
-   
    Label(win, text='See "output.xlsx" for report ',font=('Arial 13')).grid(row=1,padx=50,pady=10)
    Button(win,text="Exit", command=lambda:close_window(win)).grid(row=2)
    return win
