@@ -6,7 +6,7 @@ from sklearn.cluster import DBSCAN
 import numpy as np
 import openpyxl
 from openpyxl.drawing.image import Image
-import GUI
+from GUI import create_file_selector, create_output_alert
 
 
 
@@ -76,16 +76,13 @@ def create_location_key(label_l, label_r):
     return f"{str(label_l)}_{str(label_r)}"
 
 ####################### Key variables #####################################
-LSW_output_file_path = r"test_files/Thornton SW Output.pdf"
-LSW_input_file_path = r"test_files/Thornton Input.txt"
+# LSW_output_file_path = r"test_files/Thornton SW Output.pdf"
+# LSW_input_file_path = r"test_files/Thornton Input.txt"
 eps = 2
 logo_path = r"images/MSD Full Logo.jpg"
 output_path = r"output.xlsx"
 
-win = GUI.create_input_files_window()
-win.mainloop()
-
-
+LSW_input_file_path, LSW_output_file_path = create_file_selector()
 
 
 # # ############### Read output pdf and store as DF #################
@@ -279,8 +276,8 @@ ws2.add_image(Image(logo_path), "A1")
 wb.save(output_path)
 
 #### display success message
-win = GUI.create_output_alert_window()
-win.mainloop()
+create_output_alert()
+
 
 
  
