@@ -1,4 +1,4 @@
-PyPDF2ß
+PyPDF2
 icecream
 pandas
 scikit-learn

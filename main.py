@@ -90,14 +90,12 @@ win.mainloop()
 
 # # ############### Read output pdf and store as DF #################
 output_text = read_full_pdf(LSW_output_file_path)
-print(output_text)
+
 ### read output file
 load_cases = extract_lateral_load_cases(output_text)
-print(load_cases)
 sections = find_sections(output_text)
-print(extract_entries_from_section("2638 SW122 L5-E 22 T7_x6 0 lbs T7_x6 0 lbs "))
 output_dict = {}
-# create output dict in folowing format {laod_case: [entry as tuple]}
+# create output dict in folowing format {load_case: [entry: tuple]}
 
 assert len(sections) == len(load_cases)
 # extract entries from section and pair entries with assocaited laod case in output_dict
