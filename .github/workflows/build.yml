@@ -9,36 +9,39 @@ jobs:
         os: [windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+        - uses: actions/checkout@v2
 
-      - name: Set up Python
+        - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+            python-version: '3.9'
 
-      - name: Install dependencies
+        - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+            python -m pip install --upgrade pip
+            if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         shell: bash
 
-    #   - name: Run tests
-    #     run: pytest
+        #   - name: Run tests
+        #     run: pytest
+        - name: Build Executable (Windows)
+        if: startsWith(matrix.os, 'windows')
+        run: pyinstaller --onefile main.py --name=LSW_HoldownReport.exe
 
-      - name: Build Executable
-        run: pyinstaller --onefile main.py --name=LSW_HoldownReport
+        - name: Build Executable (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: pyinstaller --onefile --windowed main.py --name=LSW_HoldownReport.app
 
-      - name: Rename Executable (Windows)
+        - name: Rename Executable (Windows)
         if: startsWith(matrix.os, 'windows')
         run: |
-          Move-Item dist\LSW_HoldownReport.exe dist\LSW_HoldownReport_windows.exe
+        Move-Item dist\LSW_HoldownReport.exe dist\LSW_HoldownReport_windows.exe
 
-      - name: Rename Executable (macOS)
+        - name: Rename Executable (macOS)
         if: startsWith(matrix.os, 'macos')
-        run: mv dist/LSW_HoldownReport dist/LSW_HoldownReport_macos
-
-      - name: Upload Executable as Artifact
+        run: mv dist/LSW_HoldownReport.app dist/LSW_HoldownReport_macos.app
+        - name: Upload Executable as Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: LSW_HoldownReport_${{ matrix.os }}
-          path: dist/
+        name: LSW_HoldownReport_${{ matrix.os }}
+        path: dist/
