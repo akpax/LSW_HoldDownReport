@@ -40,5 +40,5 @@ jobs:
       - name: Upload Executable as Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: load_cluster${{ matrix.os }}
+          name: LSW_HoldownReport_${{ matrix.os }}
           path: dist/
