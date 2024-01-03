@@ -9,6 +9,7 @@ from openpyxl.drawing.image import Image
 from GUI import create_file_selector, create_output_alert
 from datetime import datetime
 import os
+import sys
 
 
 
@@ -77,6 +78,9 @@ def label_close_points_with_dbscan(df, handle_column, coord_cols: list, out_labe
 def create_location_key(label_l, label_r):
     return f"{str(label_l)}_{str(label_r)}"
 
+
+
+##### Output Related Functions
 def append_date_and_time(prefix):
     date = datetime.now()
     formated_date = date.strftime("%m-%d-%Y")
@@ -94,11 +98,17 @@ def create_output_folder_path(name):
     output_folder_path = os.path.join(current_folder, output_folder_name)
     return output_folder_path
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
+
 ####################### Key variables #####################################
 # LSW_output_file_path = r"test_files/Thornton SW Output.pdf"
 # LSW_input_file_path = r"test_files/Thornton Input.txt"
 eps = 2
-logo_path = r"images/MSD Full Logo.jpg"
+logo_path = resource_path(r"images/MSD Full Logo.jpg")
 
 LSW_input_file_path, LSW_output_file_path = create_file_selector()
 

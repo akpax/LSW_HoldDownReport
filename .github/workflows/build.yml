@@ -26,11 +26,11 @@ jobs:
         #     run: pytest
         - name: Build Executable (Windows)
           if: startsWith(matrix.os, 'windows')
-          run: pyinstaller --onefile main.py --name=LSW_HoldownReport.exe
+          run: pyinstaller --add-data "images;images" --onefile main.py --name=LSW_HoldownReport.exe 
 
         - name: Build Executable (macOS)
           if: startsWith(matrix.os, 'macos')
-          run: pyinstaller --onefile --windowed main.py --name=LSW_HoldownReport
+          run: pyinstaller --add-data "images:images" --onefile main.py --name=LSW_HoldownReport 
 
         - name: Rename Executable (Windows)
           if: startsWith(matrix.os, 'windows')
@@ -39,7 +39,7 @@ jobs:
         - name: Rename Executable (macOS)
           if: startsWith(matrix.os, 'macos')
           run: mv dist/LSW_HoldownReport dist/LSW_HoldownReport_macos
-          
+
         - name: Upload Executable as Artifact
           uses: actions/upload-artifact@v2
           with:
