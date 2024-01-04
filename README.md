@@ -3,7 +3,15 @@
 
 ## Project Summary
 
-This tool is designed to automate holdown report creation from shearwall input (.txt) and force output file (.pdf) from the “Light Shear Wall” (LSW) application. The files are parsed and converted to dataframes. The shearwall locations from the input files are used to identify walls stacked on top of each other. Since LSW has limited snapping capabilities, shear wall locations are often slightly misaligned. To address this, the clustering algorithm DBSCAN is employed to cluster walls based on their locations and create unique location keys for each wall. These location keys are left joined with the shear wall outputs and utilized to locate the stacked walls. After identifying the stacked walls, the difference in tension forces between adjacent floors of each wall is calculated. The maximum delta force for each wall's left and right holdowns across different load cases is determined. An output report (.xlsx) is generated, including a summary of the maximum force for each type of holdown, the maximum left and right holdown forces for each wall, and intermediate output files. The MAR logo is attached to the first two sheets designed for printing.
+
+### ### Functionality
+
+This tool automates the post-processing of hold down forces from the Light Shear Wall (LSW) application, producing a comprehensive .xlsx report file. It processes shearwall input (.txt) and force output files (.pdf) from LSW to determine the maximum tension force each holdown experiences.
+
+### ### Behind the Scenes
+
+Internally, the tool parses the input files and converts them into dataframes for analysis. It utilizes the shearwall location data to identify walls that are stacked on top of each other. Given the LSW's limited snapping capabilities, which often result in slightly misaligned shear wall locations, the tool employs the DBSCAN clustering algorithm. This algorithm clusters walls based on their locations, generating unique location keys for each wall. These keys are then left joined with the shear wall output data to accurately identify stacked walls. Subsequently, the tool calculates the difference in tension forces between adjacent floors of each wall, identifying the maximum delta force for each wall's left and right holdowns across various load cases. The final output is an .xlsx report that includes a summary of the maximum force for each type of holdown, the maximum left and right holdown forces for each wall, and intermediate output files. The report is formatted with the MAR logo on the first two sheets, tailored for printing.
+
 
 ## Using the Executable
 
