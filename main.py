@@ -1,9 +1,7 @@
 from PyPDF2 import PdfReader
-from icecream import ic
 import re
 import pandas as pd
 from sklearn.cluster import DBSCAN
-import numpy as np
 import openpyxl
 from openpyxl.drawing.image import Image
 from GUI import create_file_selector_window, create_output_alert_window
@@ -14,8 +12,8 @@ import sys
 
 
 ################### functions ############################
-##### fucntions for reading pdf #####
-def read_full_pdf(pdf_file_path: str):
+##### functions for reading pdf #####
+def read_full_pdf(pdf_file_path: str) -> str:
     """
     Reads all pages of a pdf and returns contents as a string
     """
@@ -33,7 +31,7 @@ def read_full_pdf(pdf_file_path: str):
             full_text += text
         return full_text
 
-def extract_lateral_load_cases(text: str):
+def extract_lateral_load_cases(text: str) -> str:
     """
     Uses regex to find lateral load cases in a string and returns them as a list
     """
@@ -41,7 +39,7 @@ def extract_lateral_load_cases(text: str):
     lateral_load_cases = re.findall(pattern, text)
     return [load_case.replace(" ","") for load_case in lateral_load_cases]
 
-def find_sections(text: str):
+def find_sections(text: str) -> list:
     """
     Uses break text to divide long string into sections and returns sections as list
     Sections are checked to see if they contain entries which is row in our pdf table
@@ -52,7 +50,7 @@ def find_sections(text: str):
     sections_w_entries = [section for section in sections if check_for_entries(section)]
     return sections_w_entries
 
-def extract_entries_from_section(text: str):
+def extract_entries_from_section(text: str) -> list :
     """
     Uses regex to find entries (row of data in pdf text) in text and returns each row as list of tuples
     """
@@ -68,7 +66,7 @@ def check_for_entries(text: str) -> bool:
     pattern = r"(\d+) (SW\d+) ([a-zA-Z]+\d+-?[a-zA-Z]*) (\d+\*?) (T[\w_]*\d+) (\d{1,3}(?:,\d{3})* [a-zA-Z]+) (T[\w_]*\d+) (\d{1,3}(?:,\d{3})* [a-zA-Z]+)"
     return bool(re.search(pattern,text))
 
-def ensure_df_in_list_same_length(df_list: list):
+def ensure_df_in_list_same_length(df_list: list) -> bool:
     """
     Checks that each dataframe in list is the same length
     """
@@ -76,7 +74,7 @@ def ensure_df_in_list_same_length(df_list: list):
 
 
 ##### functions for manipulating dataframes #####
-def convert_coord_pair_to_float(coord):
+def convert_coord_pair_to_float(coord: str) -> tuple:
     """
     Takes string in following format: [1234.2, -134] and returns each number as a float 1234.1, -134"""
     if not type(coord) == str:
@@ -88,7 +86,7 @@ def convert_coord_pair_to_float(coord):
     y = float(y)
     return x,y
 
-def remove_comma_convert_to_float(x):
+def remove_comma_convert_to_float(x: str) -> float:
     """
     Takes a string with expected format "12,3423 lb" and converts number to float
     """
@@ -97,7 +95,11 @@ def remove_comma_convert_to_float(x):
     number = float(number)
     return number
 
-def label_close_points_with_dbscan(df, coord_cols: list, out_label="label", eps=3):
+def label_close_points_with_dbscan(df: pd.DataFrame,
+                                    coord_cols: list, 
+                                    out_label: str="label", 
+                                    eps:float=3
+                                    ) -> pd.DataFrame:
     """
     Use sklearn DBSCAN alogrithm to create a label column from x,y coordiante colummns
     
@@ -105,22 +107,23 @@ def label_close_points_with_dbscan(df, coord_cols: list, out_label="label", eps=
     df (pandas.DataFrame): dataframe contianing coord columns
     coord_cols (list): name of columns containing coordinates
     out_label (str): name for new label column
-    eps (int): DBSCAN algorithm paramter; maximum distance between two samples for one to be considered
-          as in the neighborhood of the other. 
+    eps (int): DBSCAN algorithm paramter; 
+        maximum distance between two samples for one to be considered
+        as in the neighborhood of the other. 
     """
     X = df[coord_cols].values
     clustering = DBSCAN(eps=eps, min_samples=2).fit(X)
     df[out_label] = clustering.labels_
     return df
 
-def create_location_key(label_l, label_r):
+def create_location_key(label_l: str, label_r: str) -> str:
     """
     Applied to a datframe via lambda fucntion; 
     Combines two strings with an "_"
     """
     return f"{str(label_l)}_{str(label_r)}"
 
-def extract_level(diaphragm_label):
+def extract_level(diaphragm_label: str) -> int:
     """
     Extract digits from diaphragm string and returns them as integer
     """
@@ -129,7 +132,7 @@ def extract_level(diaphragm_label):
     level = "".join([digit for digit in digit_list])
     return int(level)
 
-def find_delta_forces(frame, force_cols: list):
+def find_delta_forces(frame: pd.DataFrame, force_cols: list) -> pd.DataFrame:
     """
     This function is intended to be applied to each dataframe that is grouped by load case and shear wall.
     It returns the elta force between the wall at current level and the wall above it.
@@ -144,9 +147,8 @@ def find_delta_forces(frame, force_cols: list):
     return frame
 
 
-
 ##### Output Related Functions #####
-def append_date_and_time(prefix):
+def append_date_and_time(prefix: str) -> str:
     """
     Appends current date to the prefix string
     """
@@ -155,18 +157,16 @@ def append_date_and_time(prefix):
     return f"{prefix}_{formated_date}"
 
 # create folder for report using current date and time
-def create_output_folder_path(name):
+def create_output_folder_path(name: str) -> str:
     """
     Finds CWD and returns output folder path inside desktop dir
     """
-    # date = datetime.now()
-    # formated_date = date.strftime("%d-%m-%Y_%H:%M:%S")
     output_folder_name = append_date_and_time(name)
     current_folder = os.getcwd() # get Home directory
     output_folder_path = os.path.join(current_folder, output_folder_name)
     return output_folder_path
 
-def resource_path(relative_path):
+def resource_path(relative_path: str) -> str:
     """ 
     Get absolute path to resource, works for dev and for PyInstaller 
     Note: sys._MEIPASS is a temporary folder for PyInstaller, necessary to load images folder into bundled app
@@ -190,8 +190,10 @@ load_cases = extract_lateral_load_cases(output_text)
 sections = find_sections(output_text)
 output_dict = {}
 
-assert len(sections) == len(load_cases) # if assertion fails, there was an error readig the output_pdf
-# extract entries from section and pair entries with assocaited laod case in output_dict
+# if assertion fails, there was an error reading the output_pdf
+assert len(sections) == len(load_cases) 
+
+# extract entries from section and pair entries with assocaited load case in output_dict
 for i,section in enumerate(sections):
     lines = extract_entries_from_section(section)
     if not load_cases[i] in output_dict.keys():
@@ -224,8 +226,14 @@ ensure_df_in_list_same_length(output_dfs)  #after creating datframes, each load 
 output_df = pd.concat(output_dfs, ignore_index=True)
 output_raw_df = output_df #save raw output for report later
 
-output_df["left_tension"] = output_df.apply(lambda row: remove_comma_convert_to_float(row["left_tension"]), axis=1)
-output_df["right_tension"] = output_df.apply(lambda row: remove_comma_convert_to_float(row["right_tension"]), axis=1)
+output_df["left_tension"] = output_df.apply(
+    lambda row: remove_comma_convert_to_float(row["left_tension"]),
+    axis=1
+    )
+output_df["right_tension"] = output_df.apply(
+    lambda row: remove_comma_convert_to_float(row["right_tension"]),
+    axis=1
+    )
 
 ############### Read Input Text and Store as Df ###################
 input_cols = [
@@ -240,22 +248,36 @@ input_cols = [
 ]
 
 input_df = pd.read_table(LSW_input_file_path, header=None)
-input_df = input_df.iloc[:,:-1] # drops last column which is filled with Nan values
+# drop last column which is filled with Nan values
+input_df = input_df.iloc[:,:-1] 
 input_df.columns = input_cols
-input_raw_df = input_df # save initial input_df for logging purposes
+# save initial input_df for logging purposes
+input_raw_df = input_df 
 
 ############## create location keys for input df to determine stacked shear walls
 # remove only keep necessary columns for input_df for merge
 input_df = input_df[["handle","left_location", "right_location", "diaphragm"]]
 
-input_df[["x_left","y_left"]] = input_df.apply(lambda row: convert_coord_pair_to_float(row["left_location"]), axis=1, result_type="expand")
-input_df[["x_right","y_right"]] = input_df.apply(lambda row: convert_coord_pair_to_float(row["right_location"]), axis=1, result_type="expand")
+input_df[["x_left","y_left"]] = input_df.apply(
+    lambda row: convert_coord_pair_to_float(row["left_location"]),
+    axis=1,
+    result_type="expand"
+    )
+input_df[["x_right","y_right"]] = input_df.apply(
+    lambda row: convert_coord_pair_to_float(row["right_location"]),
+    axis=1,
+    result_type="expand"
+    )
 
-print(input_df)
-input_df = label_close_points_with_dbscan(input_df, ['x_left','y_left'], out_label="label_l",eps=2) #create unqiue lable for similar left coord
-input_df = label_close_points_with_dbscan(input_df, ['x_right','y_right'], out_label="label_r",eps=2) #create unqiue lable for similar right coord
 
-input_df["location_key"] = input_df.apply(lambda row: create_location_key(row["label_l"], row["label_r"]), axis=1)
+#create unqiue lable for similar left and right coords respectively
+input_df = label_close_points_with_dbscan(input_df, ['x_left','y_left'], out_label="label_l",eps=2) 
+input_df = label_close_points_with_dbscan(input_df, ['x_right','y_right'], out_label="label_r",eps=2) 
+
+input_df["location_key"] = input_df.apply(
+    lambda row: create_location_key(row["label_l"], row["label_r"]),
+    axis=1
+    )
 
 grouped_sw_df = input_df.groupby("location_key", as_index=False)
 
@@ -277,13 +299,14 @@ input_df["level"] = input_df.apply(lambda row: extract_level(row["diaphragm"]), 
 
 
 ########################### Merge Coordinate Keys to Output df
-output_df["handle"] = output_df["handle"].astype("str")  # convert from numpy to string for merge
-input_df["handle"] = input_df["handle"].astype("str")  # convert from numpy to string for merge
+# convert handles from numpy to string for merge
+output_df["handle"] = output_df["handle"].astype("str")  
+input_df["handle"] = input_df["handle"].astype("str")  
 df = pd.merge(output_df, input_df, on="handle", how="left")
 
 
 ########################### group by load case and shear wall and find delta forces for each side
-grouped_df = df.groupby(["load_case","location_key"])#.sort_values("level")
+grouped_df = df.groupby(["load_case","location_key"])
 
 delta_df = grouped_df.apply(find_delta_forces, force_cols=["left_tension","right_tension"])
 
@@ -297,30 +320,45 @@ delta_left_max_index = delta_grouped_df["delta_left_tension"].idxmax()
 delta_right_max_index = delta_grouped_df["delta_right_tension"].idxmax()
 
 # filter for max delta vlaue based on index and pull releveant columns for output report
-walls_max_delta_left_df = delta_df.loc[delta_left_max_index][["handle","name","delta_left_tension","LHD","load_case","left_location"]]
+walls_max_delta_left_df = delta_df.loc[delta_left_max_index][
+    ["handle","name","delta_left_tension","LHD","load_case","left_location"]
+    ]
 walls_max_delta_left_df.rename(columns={"load_case": "load_case_left"},inplace=True)
-walls_max_delta_right_df = delta_df.loc[delta_right_max_index][["handle","delta_right_tension","RHD","load_case","right_location", "location_key", "level"]]
+
+walls_max_delta_right_df = delta_df.loc[delta_right_max_index][
+    ["handle","delta_right_tension","RHD","load_case","right_location", "location_key", "level"]
+    ]
 walls_max_delta_right_df.rename(columns={"load_case": "load_case_right"},inplace=True)
 
-assert(len(walls_max_delta_left_df)==len(walls_max_delta_right_df)) #dfs should be same length
+assert len(walls_max_delta_left_df)==len(walls_max_delta_right_df) #dfs should be same length
 walls_max_delta_df = walls_max_delta_left_df.merge(walls_max_delta_right_df,how="outer", on="handle") 
 
 
 # groupy by location key and sort by level for output report clarity
-walls_max_delta_df = walls_max_delta_df.groupby("location_key",as_index=False).apply(lambda frame: frame.sort_values("level"))
+walls_max_delta_df = walls_max_delta_df.groupby(
+    "location_key",as_index=False
+    ).apply(lambda frame: frame.sort_values("level"))
 walls_max_delta_df.drop(columns="location_key",inplace=True)
 
 
 ############################################## create tiedown schedule
-# holdowns are not always same on left and right side for each hshearwall
+# holdowns are not always same on left and right side for each shearwall
 # stack the holddown type and tension force for left and rght shearwalls
 LHD_df = walls_max_delta_df[["LHD","delta_left_tension"]]
-LHD_df.rename(columns={"LHD": "HD_type", "delta_left_tension": "tension"},inplace=True)
+LHD_df.rename(
+    columns={"LHD": "HD_type", "delta_left_tension": "tension"},
+    inplace=True
+    )
 RHD_df = walls_max_delta_df[["RHD","delta_right_tension"]]
-RHD_df.rename(columns={"RHD": "HD_type", "delta_right_tension": "tension"}, inplace=True)
+RHD_df.rename(
+    columns={"RHD": "HD_type", "delta_right_tension": "tension"},
+    inplace=True
+    )
 HD_df = pd.concat([LHD_df,RHD_df],axis=0, ignore_index=True) # concatenat along rows
 
-HD_max_df = HD_df.groupby("HD_type", as_index=False).max("tension").sort_values("tension",ascending=False) 
+HD_max_df = HD_df.groupby(
+    "HD_type", as_index=False
+    ).agg({"tension":"max"}).sort_values("tension",ascending=False) 
 
 
 # ##################### Output Important dfs to different sheets in output.xlsx #######################
@@ -335,8 +373,8 @@ if not os.path.exists(output_folder_path):
 xlsx_output_path = os.path.join(output_folder_path, "output.xlsx")
 
 with pd.ExcelWriter(xlsx_output_path) as writer:
-    HD_max_df.to_excel(writer, sheet_name="Holdown Summary", index=False, startrow=15) #leave room for MAR logo
-    walls_max_delta_df.to_excel(writer, sheet_name='Wall Info', index=False, startrow=15) #leave room for MAR logo
+    HD_max_df.to_excel(writer, sheet_name="Holdown Summary", index=False, startrow=15) 
+    walls_max_delta_df.to_excel(writer, sheet_name='Wall Info', index=False, startrow=15) 
     output_raw_df.to_excel(writer, sheet_name='LSW output data', index=False)
     input_raw_df.to_excel(writer, sheet_name='LSW input data', index=False)
     
