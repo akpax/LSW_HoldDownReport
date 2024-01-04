@@ -4,17 +4,15 @@
 ## Project Summary
 
 
-### ### Functionality
-
+### Functionality
 This tool automates the post-processing of hold down forces from the Light Shear Wall (LSW) application, producing a comprehensive .xlsx report file. It processes shearwall input (.txt) and force output files (.pdf) from LSW to determine the maximum tension force each holdown experiences.
 
-### ### Behind the Scenes
 
+### Behind the Scenes
 Internally, the tool parses the input files and converts them into dataframes for analysis. It utilizes the shearwall location data to identify walls that are stacked on top of each other. Given the LSW's limited snapping capabilities, which often result in slightly misaligned shear wall locations, the tool employs the DBSCAN clustering algorithm. This algorithm clusters walls based on their locations, generating unique location keys for each wall. These keys are then left joined with the shear wall output data to accurately identify stacked walls. Subsequently, the tool calculates the difference in tension forces between adjacent floors of each wall, identifying the maximum delta force for each wall's left and right holdowns across various load cases. The final output is an .xlsx report that includes a summary of the maximum force for each type of holdown, the maximum left and right holdown forces for each wall, and intermediate output files. The report is formatted with the MAR logo on the first two sheets, tailored for printing.
 
 
 ## Using the Executable
-
 To download the executable, visit[ https://github.com/akpax/LSW_HoldDownReport/tags](https://github.com/akpax/LSW_HoldDownReport/tags) and click on the most recent release. In the assets section, select the LSW_HoldownReport_windows.exe file for download and place it in your desired directory. (This will also be the directory where the output folder is created.) Note: the .exe file is standalone, and downloading the source code is not necessary to run this application.
 
 ![](https://lh7-us.googleusercontent.com/wNyG0cKXRI-d5U6zLaQxobd5jS0lwTX4wXJzBUd5ClFAc_R5XF0FF8O6Fq-0abzcGjK_RlMFHcRvHwj40AkhwKxQsYwUTh2Ys3vV-_yj5OiyemXBvYh-Q4w-NfvydXY2000q7usUZcUn7NEYLdNLIyE)
@@ -42,11 +40,9 @@ Upon clicking submit, the backend parses the files and performs the logic to ide
 If this message does not appear, the analysis has likely failed. The most common reasons are incorrect data format (refer to the next section) or an issue parsing the output pdf. Please double check the data files per  the “correctly Formatting the LSW Files” section. If this does not produce an output, please create an “issue” on GitHub detailing the problem you are experiencing.
 
 ## Correctly Formatting the LSW files
-
 The LSW shearwall input and force output files must follow a specific format for the application to process them correctly. This section covers the proper formatting for these files:
 
 ### Shearwall Input File
-
 In LSW, navigate to components, click on tables, and in the dropdown, change the selection to shearwalls.
 
 ![](https://lh7-us.googleusercontent.com/zvuQ7H8j3K4ccY7fqeOSUHyFwQBQjk9BvnyIDtMO4riBbgeFVRhAKD3oECf8RGoYi2HS-bPHBvzS8FvNBK_LYh2FcyXUQUkNzw69N9VaLYoxG0y-EDTAlM19N2JfYe5hmO-UpM5ERNXzI4EjiC9nxBw)
