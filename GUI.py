@@ -15,7 +15,7 @@ class FileSelectorGUI:
         self.input_file_path = None
         self.output_file_path = None
 
-        Label(self.win, text="Select a LSW input file (.txt):",font=('Arial 13 bold')).grid(row=0, column=0,padx=30,pady=10)
+        Label(self.win, text="Select a LSW shearwall input file (.txt):",font=('Arial 13 bold')).grid(row=0, column=0,padx=30,pady=10)
         Button(self.win, text="Browse", command=self.select_input_file).grid(row=0, column=2, ipadx=10,ipady=3, padx=30)
         self.input_path_label = Label(self.win, text="")
         self.input_path_label.grid(row=0, column=1)
@@ -88,7 +88,7 @@ def create_file_selector():
 
 def create_output_alert(output_file_folder):
    win = Tk()
-   win.title("LSW Holdown Report Generator")
+   win.title("LSW Holdown Report Generator - Success")
    Label(win, text='Analysis Successfull!' ,font=('Arial 13 bold')).grid(row=0,padx=50,pady=10)
    Label(win, text=f'See "{output_file_folder}" for report ',font=('Arial 13')).grid(row=1,padx=50,pady=10)
    Button(win,text="Exit", command=win.destroy).grid(row=2)

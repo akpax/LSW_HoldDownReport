@@ -209,13 +209,13 @@ bad_walls = 0
 for shearwall,frame in grouped_sw_df:
     if not len(frame) == 4:
         bad_walls+=1
-        print("_____________________________________________________________________________")
-        print(f"Shearwall: {shearwall}")
-        # print(frame.head())
-        print(frame[['handle','x_left','xl_label','y_left','yl_label','x_right','xr_label','y_right','yr_label']])
-        print("_____________________________________________________________________________")
+        # print("_____________________________________________________________________________")
+        # print(f"Shearwall: {shearwall}")
+        # # print(frame.head())
+        # print(frame[['handle','x_left','xl_label','y_left','yl_label','x_right','xr_label','y_right','yr_label']])
+        # print("_____________________________________________________________________________")
     
-print(f"bad walls{ bad_walls}")
+# print(f"bad walls{ bad_walls}")
 
 def extract_level(diaphragm_label):
     assert isinstance(diaphragm_label,str)
