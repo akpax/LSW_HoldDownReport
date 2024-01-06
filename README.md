@@ -15,7 +15,8 @@ Internally, the tool parses the input files and converts them into dataframes fo
 ## Using the Executable
 To download the executable, visit[ https://github.com/akpax/LSW_HoldDownReport/tags](https://github.com/akpax/LSW_HoldDownReport/tags) and click on the most recent release. In the assets section, select the LSW_HoldownReport_windows.exe file for download and place it in your desired directory. (This will also be the directory where the output folder is created.) Note: the .exe file is standalone, and downloading the source code is not necessary to run this application.
 
-![1704334989452](image/README/1704334989452.png)
+<img width="735" alt="Screenshot 2024-01-05 at 6 34 05 PM" src="https://github.com/akpax/LSW_HoldDownReport/assets/78048703/4e0829a2-7047-4e8d-8f9b-0cc4dd26aa55">
+
 
 When the user launches the executable, the File Selector GUI appears, prompting for input and output file selection. (Refer to the next section for the correct file format).
 
