@@ -8,6 +8,7 @@ from GUI import create_file_selector_window, create_output_alert_window
 from datetime import datetime
 import os
 import sys
+from output_formating_utilities import write_dict_to_xlsx, resize_and_convert_image, add_ImgByteArr_to_worksheet, scale_cols_to_max_width
 
 
 
@@ -89,8 +90,10 @@ def convert_coord_pair_to_float(coord: str) -> tuple:
 def remove_comma_convert_to_float(x: str) -> float:
     """
     Takes a string with expected format "12,3423 lb" and converts number to float
+    Makes unit a global variable for output
     """
-    number,unit = x.split(" ")  # TO DO create fucntion that takes unti and appends to column title
+    global unit
+    number,unit = x.split(" ")  # TO DO create function that takes unti and appends to column title
     number = number.replace(",","")
     number = float(number)
     return number
@@ -179,7 +182,7 @@ def resource_path(relative_path: str) -> str:
 eps = 2
 logo_path = resource_path(r"images/MSD Full Logo.jpg")
 
-LSW_input_file_path, LSW_output_file_path = create_file_selector_window()
+LSW_input_file_path, LSW_output_file_path,lsw_model_version, job_info = create_file_selector_window()
 
 
 # # ############### Read output pdf and store as DF #################
@@ -360,6 +363,11 @@ HD_max_df = HD_df.groupby(
     "HD_type", as_index=False
     ).agg({"tension":"max"}).sort_values("tension",ascending=False) 
 
+# add column for ASD (0.7E)
+HD_max_df[f"Tension(0.7E_ASD) [{unit}]"] = HD_max_df["tension"]*0.7
+HD_max_df.rename(columns={"tension": f"Tension(1.0E_LRFD) [{unit}]" }, inplace=True)
+
+
 
 # ##################### Output Important dfs to different sheets in output.xlsx #######################
 # create output folder path in CWD
@@ -373,18 +381,30 @@ if not os.path.exists(output_folder_path):
 xlsx_output_path = os.path.join(output_folder_path, "output.xlsx")
 
 with pd.ExcelWriter(xlsx_output_path) as writer:
-    HD_max_df.to_excel(writer, sheet_name="Holdown Summary", index=False, startrow=15) 
-    walls_max_delta_df.to_excel(writer, sheet_name='Wall Info', index=False, startrow=15) 
+    HD_max_df.to_excel(writer, sheet_name="Holdown Summary", index=False, startrow=12) 
+    walls_max_delta_df.to_excel(writer, sheet_name='Wall Info', index=False, startrow=12) 
     output_raw_df.to_excel(writer, sheet_name='LSW output data', index=False)
     input_raw_df.to_excel(writer, sheet_name='LSW input data', index=False)
     
  
 ######################### add mar logo to holdown summary, Wall info
+
 wb = openpyxl.load_workbook(xlsx_output_path)
-ws1 = wb["Holdown Summary"]
-ws2 = wb["Wall Info"]
-ws1.add_image(Image(logo_path), "A1")
-ws2.add_image(Image(logo_path), "A1")
+ws_list = [wb["Holdown Summary"],wb["Wall Info"]]
+
+## add headers to sheets in worksheet list            
+for ws in ws_list:
+    img_byte_array = resize_and_convert_image(logo_path, resize_factor=2.5)
+    add_ImgByteArr_to_worksheet(img_byte_array,ws, "A1")
+    write_dict_to_xlsx(job_info, ws, start_row=2, start_col=6)
+    ws["A7"] = "Max Incremental Seismic Tension per Light Shear Wall (LSW) Analysis"
+    ws["B8"] = "* LSW Model Version:"
+    ws["C8"] = lsw_model_version
+    ws["B9"] = "* Shearwall Input Files:"
+    ws["C9"] = f'"{os.path.basename(LSW_input_file_path)}"'
+    ws["C10"] = f'"{os.path.basename(LSW_output_file_path)}"'
+    scale_cols_to_max_width(ws)
+
 wb.save(xlsx_output_path)
 
 #### display success message
