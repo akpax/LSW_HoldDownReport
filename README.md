@@ -50,7 +50,7 @@ In LSW, navigate to components, click on tables, and in the dropdown, change the
 
 The application expects the following columns in this order:
 
-[Handle, Diaphragm, Name, Shearwall Type, Left Location, Right Location, Left Boundary Type, Right Boundary Type].
+``` [Handle, Diaphragm, Name, Shearwall Type, Left Location, Right Location, Left Boundary Type, Right Boundary Type] ``` Note: Diaphragm must have a numerical value in it; the tool will extract digits from the diaphragm entry and use the extracted digit to determine where each wall is vertically located.
 
 To adjust displayed columns, right-click within the table and select settings in the dialogue box.
 
@@ -72,7 +72,8 @@ First, the user needs to run the model by navigating to the buildings tab, click
 
 
 
-To view the results, go to components, click view results, and change the drop-down selection to shearwalls. Then, adjust the table settings as in the previous section to display only the following columns: [Handle, Name, Lower Diaphragm, Shearwall Type, Left Boundary Type, Left Tension, Right Boundary Type, Right Tension]
+To view the results, go to components, click view results, and change the drop-down selection to shearwalls. Then, adjust the table settings as in the previous section to display only the following columns: 
+``` [Handle, Name, Lower Diaphragm, Shearwall Type, Left Boundary Type, Left Tension, Right Boundary Type, Right Tension] ```
 
 ![](https://lh7-us.googleusercontent.com/jArAyvs1sgsraLSI34k3f7rDtoszPREqeh6uKnlMyMUNlPq_xOf94ZDM-LQXVVrq1sZsDky1czAQozQZYxATDrqOuSMnMH5ule9Qf1TvTA3rFXySn7eWlB6Z0uqLC9V-_s-N3u94HG-dyqJQQ1ZC0As)
 
