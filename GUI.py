@@ -59,7 +59,7 @@ class FileSelectorGUI:
         'Project:': str(self.project.get()),
         'Job No.:': str(self.job_num.get()),
         'Date:': str(datetime.now().strftime("%m-%d-%Y")),
-        'By': str(self.author.get())
+        'By:': str(self.author.get())
     }
         return self.input_file_path, self.output_file_path, self.lsw_model_version.get(), job_info
 

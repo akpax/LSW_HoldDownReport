@@ -177,14 +177,31 @@ def resource_path(relative_path: str) -> str:
     base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
 
+######### LOGING
+def log_message(message, filepath):
+    f = open(filepath,"a")
+    f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}----{message}")
+    f.close()
+
 
 ####################### Key variables #####################################
 eps = 2
 logo_path = resource_path(r"images/MSD Full Logo.jpg")
+df_start_row = 12 # for xlsx
+log_file_path = 
 
 LSW_input_file_path, LSW_output_file_path,lsw_model_version, job_info = create_file_selector_window()
 
+# create output folder path in CWD
+output_folder_path = create_output_folder_path("LSW_HoldownReport")
+print(f"- Output Folder: {output_folder_path}")
+#create folder for output
+if not os.path.exists(output_folder_path): 
+    os.makedirs(output_folder_path)
+    print(" * Output Folder created *")
 
+log_file_path =os.path.join(output_folder_path, "log.txt")
+xlsx_output_path = os.path.join(output_folder_path, "output.xlsx")
 # # ############### Read output pdf and store as DF #################
 output_text = read_full_pdf(LSW_output_file_path)
 
@@ -284,27 +301,13 @@ input_df["location_key"] = input_df.apply(
 
 grouped_sw_df = input_df.groupby("location_key", as_index=False)
 
-# bad_walls = 0
-# #check that allsw w same location tag are four levels
-# for shearwall,frame in grouped_sw_df:
-#     if not len(frame) == 4:
-#         bad_walls+=1
-#         # print("_____________________________________________________________________________")
-#         # print(f"Shearwall: {shearwall}")
-#         # # print(frame.head())
-#         # print(frame[['handle','x_left','xl_label','y_left','yl_label','x_right','xr_label','y_right','yr_label']])
-#         # print("_____________________________________________________________________________")
-    
-# print(f"bad walls{ bad_walls}")
-
-
 input_df["level"] = input_df.apply(lambda row: extract_level(row["diaphragm"]), axis=1)
 
 
 ########################### Merge Coordinate Keys to Output df
 # convert handles from numpy to string for merge
-output_df["handle"] = output_df["handle"].astype("str")  
-input_df["handle"] = input_df["handle"].astype("str")  
+output_df.loc[:,["handle"]] = output_df["handle"].astype("str")  
+input_df.loc[:,["handle"]] = input_df["handle"].astype("str")  
 df = pd.merge(output_df, input_df, on="handle", how="left")
 
 
@@ -364,25 +367,16 @@ HD_max_df = HD_df.groupby(
     ).agg({"tension":"max"}).sort_values("tension",ascending=False) 
 
 # add column for ASD (0.7E)
-HD_max_df[f"Tension(0.7E_ASD) [{unit}]"] = HD_max_df["tension"]*0.7
+HD_max_df[f"Tension(0.7E_ASD) [{unit}]"] = (0.7*HD_max_df["tension"]).astype(int)
 HD_max_df.rename(columns={"tension": f"Tension(1.0E_LRFD) [{unit}]" }, inplace=True)
 
 
 
 # ##################### Output Important dfs to different sheets in output.xlsx #######################
-# create output folder path in CWD
-output_folder_path = create_output_folder_path("LSW_HoldownReport")
-print(f"- Output Folder: {output_folder_path}")
-#create folder for output
-if not os.path.exists(output_folder_path): 
-    os.makedirs(output_folder_path)
-    print(" * Output Folder created *")
-
-xlsx_output_path = os.path.join(output_folder_path, "output.xlsx")
 
 with pd.ExcelWriter(xlsx_output_path) as writer:
-    HD_max_df.to_excel(writer, sheet_name="Holdown Summary", index=False, startrow=12) 
-    walls_max_delta_df.to_excel(writer, sheet_name='Wall Info', index=False, startrow=12) 
+    HD_max_df.to_excel(writer, sheet_name="Holdown Summary", index=False, startrow=df_start_row) 
+    walls_max_delta_df.to_excel(writer, sheet_name='Wall Info', index=False, startrow=df_start_row) 
     output_raw_df.to_excel(writer, sheet_name='LSW output data', index=False)
     input_raw_df.to_excel(writer, sheet_name='LSW input data', index=False)
     
@@ -396,14 +390,15 @@ ws_list = [wb["Holdown Summary"],wb["Wall Info"]]
 for ws in ws_list:
     img_byte_array = resize_and_convert_image(logo_path, resize_factor=2.5)
     add_ImgByteArr_to_worksheet(img_byte_array,ws, "A1")
-    write_dict_to_xlsx(job_info, ws, start_row=2, start_col=6)
+    write_dict_to_xlsx(job_info, ws, start_row=1, start_col=6)
     ws["A7"] = "Max Incremental Seismic Tension per Light Shear Wall (LSW) Analysis"
-    ws["B8"] = "* LSW Model Version:"
+    ws["A7"].font = openpyxl.styles.Font(bold=True)
+    ws["B8"] = "LSW Model Version:"
     ws["C8"] = lsw_model_version
-    ws["B9"] = "* Shearwall Input Files:"
+    ws["B9"] = "LSW Analysis Output Files:"
     ws["C9"] = f'"{os.path.basename(LSW_input_file_path)}"'
     ws["C10"] = f'"{os.path.basename(LSW_output_file_path)}"'
-    scale_cols_to_max_width(ws)
+    scale_cols_to_max_width(ws, start_row=8)
 
 wb.save(xlsx_output_path)
 

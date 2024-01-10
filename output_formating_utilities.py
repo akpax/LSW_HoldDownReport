@@ -48,12 +48,14 @@ def add_ImgByteArr_to_worksheet(
     # Add image to worksheet and save
     worksheet.add_image(openpyxl_img, insert_cell)
 
-def scale_cols_to_max_width(worksheet:openpyxl.worksheet.worksheet.Worksheet):
+def scale_cols_to_max_width(worksheet:openpyxl.worksheet.worksheet.Worksheet, start_row=None):
     """
-    Scale all columns in worksheet to the maximum cell width
+    Scale each column in worksheet to the maximum cell width of respective column.
+    
+    start_row: row where width dimensions start to be analyzed for max width
     """
     dims = {}
-    for row in worksheet.rows:
+    for row in worksheet.iter_rows(min_row=start_row):
         for cell in row:
             if cell.value:
                 dims[cell.column_letter] = max((dims.get(cell.column_letter, 0), len(str(cell.value))))   
