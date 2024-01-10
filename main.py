@@ -180,7 +180,7 @@ def resource_path(relative_path: str) -> str:
 ######### LOGING
 def log_message(message, filepath):
     f = open(filepath,"a")
-    f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}----{message}")
+    f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}----{message}\n")
     f.close()
 
 
@@ -188,7 +188,7 @@ def log_message(message, filepath):
 eps = 2
 logo_path = resource_path(r"images/MSD Full Logo.jpg")
 df_start_row = 12 # for xlsx
-log_file_path = 
+
 
 LSW_input_file_path, LSW_output_file_path,lsw_model_version, job_info = create_file_selector_window()
 
@@ -202,6 +202,7 @@ if not os.path.exists(output_folder_path):
 
 log_file_path =os.path.join(output_folder_path, "log.txt")
 xlsx_output_path = os.path.join(output_folder_path, "output.xlsx")
+log_message("-"*25+"BEGIN ANALYSIS"+"-"*25, log_file_path)
 # # ############### Read output pdf and store as DF #################
 output_text = read_full_pdf(LSW_output_file_path)
 
@@ -211,8 +212,9 @@ sections = find_sections(output_text)
 output_dict = {}
 
 # if assertion fails, there was an error reading the output_pdf
-assert len(sections) == len(load_cases) 
 
+assert len(sections) ==  len(load_cases)
+log_message("LSW OUTPUT PDF: NUMBER OF ENTRY SECTIONS EQUAL TO NUMBER PARSED LOAD CASES", log_file_path)
 # extract entries from section and pair entries with assocaited load case in output_dict
 for i,section in enumerate(sections):
     lines = extract_entries_from_section(section)
@@ -243,8 +245,13 @@ for load_case, entries in output_dict.items():
 
 
 ensure_df_in_list_same_length(output_dfs)  #after creating datframes, each load case df should have same length
+
 output_df = pd.concat(output_dfs, ignore_index=True)
 output_raw_df = output_df #save raw output for report later
+
+qty_wall_in_output = int(output_df.groupby("load_case").size().mean())
+log_message(f"LSW OUTPUT PDF: QTY WALLS w/ OUPUT: {qty_wall_in_output}", log_file_path)
+log_message("LSW OUTPUT PDF: SUCCESSFULLY PARSED AND LOADED INTO PANDAS DATAFRAME", log_file_path)
 
 output_df["left_tension"] = output_df.apply(
     lambda row: remove_comma_convert_to_float(row["left_tension"]),
@@ -273,6 +280,9 @@ input_df = input_df.iloc[:,:-1]
 input_df.columns = input_cols
 # save initial input_df for logging purposes
 input_raw_df = input_df 
+log_message("LSW INPUT TXT: SUCCESSFULLY LOADED INTO PANDAS DATAFRAME", log_file_path)
+log_message(f"LSW INPUT TXT: QTY INDIVIDUAL WALLS: {len(input_df)}", log_file_path)
+
 
 ############## create location keys for input df to determine stacked shear walls
 # remove only keep necessary columns for input_df for merge
@@ -299,9 +309,13 @@ input_df["location_key"] = input_df.apply(
     axis=1
     )
 
-grouped_sw_df = input_df.groupby("location_key", as_index=False)
 
+
+grouped_sw_df = input_df.groupby("location_key", as_index=False)
 input_df["level"] = input_df.apply(lambda row: extract_level(row["diaphragm"]), axis=1)
+
+msg = f"DBSCAN APPLIED AND LOCATION KEY CREATED - Total Stacked Walls: {len(grouped_sw_df)}"
+log_message(msg, log_file_path)
 
 
 ########################### Merge Coordinate Keys to Output df
@@ -309,7 +323,7 @@ input_df["level"] = input_df.apply(lambda row: extract_level(row["diaphragm"]), 
 output_df.loc[:,["handle"]] = output_df["handle"].astype("str")  
 input_df.loc[:,["handle"]] = input_df["handle"].astype("str")  
 df = pd.merge(output_df, input_df, on="handle", how="left")
-
+log_message("INPUT DF LEFT MERGED TO OUTPUT DF", log_file_path)
 
 ########################### group by load case and shear wall and find delta forces for each side
 grouped_df = df.groupby(["load_case","location_key"])
@@ -346,6 +360,7 @@ walls_max_delta_df = walls_max_delta_df.groupby(
     ).apply(lambda frame: frame.sort_values("level"))
 walls_max_delta_df.drop(columns="location_key",inplace=True)
 
+log_message("MAX DELTA FORCES FOUND FOR WALLS", log_file_path)
 
 ############################################## create tiedown schedule
 # holdowns are not always same on left and right side for each shearwall
@@ -380,7 +395,7 @@ with pd.ExcelWriter(xlsx_output_path) as writer:
     output_raw_df.to_excel(writer, sheet_name='LSW output data', index=False)
     input_raw_df.to_excel(writer, sheet_name='LSW input data', index=False)
     
- 
+log_message("DATAFRAMES WRITEN TO .XLSX", log_file_path)
 ######################### add mar logo to holdown summary, Wall info
 
 wb = openpyxl.load_workbook(xlsx_output_path)
@@ -402,6 +417,7 @@ for ws in ws_list:
 
 wb.save(xlsx_output_path)
 
+log_message("HEADERS ADDED TO SPECIFIED WORKSHEETS", log_file_path)
 #### display success message
 create_output_alert_window(output_folder_path)
 
