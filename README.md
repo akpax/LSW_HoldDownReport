@@ -5,7 +5,7 @@
 
 
 ### Functionality
-This tool automates the post-processing of hold down forces from the Light Shear Wall (LSW) application, producing a comprehensive .xlsx report file. It processes shearwall input (.txt) and force output files (.pdf) from LSW to determine the maximum tension force each holdown experiences.
+This tool automates the post-processing of hold down forces from the Light Shear Wall (LSW) application, producing a comprehensive .xlsx report file. It processes shearwall input (.txt) and force output files (.pdf) from LSW to determine the maximum incremental tension force from each story that the tiedowns resists.
 
 
 ### Behind the Scenes
