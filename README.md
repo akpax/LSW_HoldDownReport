@@ -5,7 +5,7 @@
 
 
 ### Functionality
-This tool automates the post-processing of hold down forces from the Light Shear Wall (LSW) application, producing a comprehensive .xlsx report file. It processes shearwall input (.txt) and force output files (.pdf) from LSW to determine the maximum incremental tension force from each story that the tiedowns resists.
+This tool automates the post-processing of hold down forces from [LightShearWalls](https://tippingapplications.com/db/lsw/), producing a comprehensive .xlsx report file. It processes shearwall input (.txt) and force output files (.pdf) from LSW to determine the maximum incremental tension force from each story that the tiedowns resists.
 
 
 ### Behind the Scenes
@@ -13,7 +13,7 @@ Internally, the tool parses the input files and converts them into dataframes fo
 
 
 ## Using the Executable
-To download the executable, visit[ https://github.com/akpax/LSW_HoldDownReport/tags](https://github.com/akpax/LSW_HoldDownReport/tags) and click on the most recent release. In the assets section, select the LSW_HoldownReport_windows.exe file for download and place it in your desired directory. (This will also be the directory where the output folder is created.) Note: the .exe file is standalone, and downloading the source code is not necessary to run this application.
+To download the executable, see [realeases](https://github.com/akpax/LSW_HoldDownReport/tags). In the assets section, select the LSW_HoldownReport_windows.exe file for download and place it in your desired directory. (This will also be the directory where the output folder is created.) Note: the .exe file is standalone, and downloading the source code is not necessary to run this application.
 
 
 When the user launches the executable, the File Selector GUI appears, prompting for input and output file selection. (Refer to the next section for the correct file format).
